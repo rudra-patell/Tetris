@@ -178,16 +178,16 @@ class Tetris{
             return false;
         }
 
-        // void merge(){
-        //     for(int i=0; i<int(tetromino.shape.size()); i++){
-        //         for(int j=0; j<int(tetromino.shape[0].size()); j++){
-        //             if(tetromino.shape[i][j]){
-        //                 map[y+i][x+j] = tetromino.type;
-        //             }
-        //         }
-        //     }
+        void merge(){
+            for(int i=0; i<int(tetromino.shape.size()); i++){
+                for(int j=0; j<int(tetromino.shape[0].size()); j++){
+                    if(tetromino.shape[i][j]){
+                        map[y+i][x+j] = tetromino.type;
+                    }
+                }
+            }
 
-        // }
+    }
 
         int createNewTetromino(){ //returns 0 if no spawn collision(gameover)
             tetromino = tetrominoes[rand() % tetrominoes.size()];
@@ -218,6 +218,7 @@ class Game{
     private:
         Tetris& tetris;
         bool gameover;
+        int score;
     public:
     Game(Tetris& tetris); { gameover = false; }
     void layout(vector<vector<int>> mp){
@@ -226,6 +227,35 @@ class Game{
                 if(i==0 || j==0 || i==WIDTH-1 || j==HEIGHT-1) map[i][j]= 9; //border
             }
         }
+    }
+
+    
+    void pauseMenu(){
+        gotoxy(WIDTH + 5, HEIGHT/2 - 3 );
+        setColor(1);
+        cout<<"Game Paused"<<endl;
+        gotoxy(WIDTH + 5, HEIGHT/2 - 1 );
+        setColor(2);
+        cout<<"R - Resume"<<endl;
+        gotoxy(WIDTH + 5, HEIGHT/2 );
+        cout<<"E - Exit";
+
+        setcolor(7);
+
+        char c=_getch();
+
+        switch(c){
+            case 'r': 
+                system("cls");
+                draw();
+                break;
+            
+            case 'e':
+                system("exit()");
+                break;
+
+        }
+
     }
 
     void draw(){
@@ -257,12 +287,36 @@ class Game{
     bool isgameOver(){
         return gameover;
     }
-    void pause(){}
-    void resume(){}
-    void start(){}
-    void clearLine(){}
+    void Pause(){
+        pauseMenu();
+    }
+    void clearLine(){
+        for(int i=1; i< HEIGHT- 1; i++){
+            bool full=true;
+            for(int j=1; j< WIDTH -1; j++){
+                if(map[i][j]==0){
+                    full=false; 
+                    break;
+                }          
+            }
+            if(full){
+                score+=WIDTH-2;
+                for (int k = j; k > 1; k--) {
+                    for (int i = 1; i < WIDTH - 1; i++) {
+                        map[k][i]=map[k-1][i];  // Move row above down
+                    }
+                }
+    
+                // Clear the top row
+                for (int i=1; i<WIDTH -1;i++) {
+                    map[1][i] =0;
+                }
+    
+            }
+        }
+    }
 
-};
+};                      
 
 
 
