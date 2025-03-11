@@ -53,7 +53,6 @@ int WIDTH = (data[0] > 2) ? data[0]: 50;
 int HEIGHT = (data[1] > 2) ? data[1]: 25;
 vector<vector<int>> map(HEIGHT, vector<int>(WIDTH, 0));//defining 2D vector grid
 
-int difficulty=1;
 
 void gotoxy(int x, int y){ //from stacksoverflow
     COORD c;
@@ -79,13 +78,15 @@ class Tetris{
         struct Tetromino { 
             char type; // Type:'I', 'O', 'T', 'S', 'Z', 'J', 'L'
             std::vector<std::vector<int>> shape;// 2D shape matrix
+            int color; // 0 to 15 for more info goto cmd and type color -h
         
             // char color; // Color
         
-            Tetromino(char t ,std::vector<std::vector<int>> s) : type(t), shape(s) {}
+            Tetromino(char t ,std::vector<std::vector<int>> s, int c) : type(t), shape(s), color(c) {}
         };
         
         int x, y;
+        bool spwancollision;
         std::vector<Tetromino> tetrominoes;
 
         // Tetromino I('I', 
@@ -122,15 +123,16 @@ class Tetris{
         //     {{0,0,1},
         //      {1,1,1},
         //      {0,0,0}});
-        Tetris() : tetromino('I', {{1,1,1,1}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}}) {
+
+        Tetris() : spwancollision(false),  tetromino('I', {{1,1,1,1}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}}, 9){
                 tetrominoes = {
-                    {'I', {{1,1,1,1}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}}},
-                    {'O', {{1,1}, {1,1}}},
-                    {'T', {{0,1,0}, {1,1,1}, {0,0,0}}},
-                    {'S', {{0,1,1}, {1,1,0}, {0,0,0}}},
-                    {'Z', {{1,1,0}, {0,1,1}, {0,0,0}}},
-                    {'J', {{1,0,0}, {1,1,1}, {0,0,0}}},
-                    {'L', {{0,0,1}, {1,1,1}, {0,0,0}}}
+                    {'I', {{1,1,1,1}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}}, 9},
+                    {'O', {{1,1}, {1,1}}, 14},
+                    {'T', {{0,1,0}, {1,1,1}, {0,0,0}}, 5},
+                    {'S', {{0,1,1}, {1,1,0}, {0,0,0}}, 12},
+                    {'Z', {{1,1,0}, {0,1,1}, {0,0,0}}, 10},
+                    {'J', {{1,0,0}, {1,1,1}, {0,0,0}}, 3} ,
+                    {'L', {{0,0,1}, {1,1,1}, {0,0,0}}, 15}
                 };
                 createNewTetromino();
             }
@@ -150,7 +152,7 @@ class Tetris{
             tetromino.shape = roteted;
         }
         void moveLeft(){
-            if(x>0 && !isCollision(-1, 0)){
+            if(x >= -1 && !isCollision(-1, 0)){ //don't know why it works, but don't touch it
                 x--;
             }
         }
@@ -180,8 +182,23 @@ class Tetris{
         bool isCollision(int dx, int dy){
             for(int i=0; i<int(tetromino.shape.size()); i++){
                 for(int j=0; j< int(tetromino.shape.size()); j++){
-                    if(tetromino.shape[i][j] && (y+i+dy>=HEIGHT || x+j+dx>= WIDTH || x+j+dx<=0 || map[y+i+dy][x+j+dx] == 2 || map[y+i+dy][x+j+dx] == 9 )){
-                        return true;
+
+                    if(tetromino.shape[i][j]){
+                        int newX= x + j+ dx;
+                        int newY= y + i + dy;
+
+                        //boundries
+                        if(newX<=0 || newX>=WIDTH-1 || newY>= HEIGHT-1) {
+                            return true;
+                        }
+                        //existing block
+                        if(map[newY][newX] >=10 || map[newY][newX]==9){
+                            return true;
+                        }
+                        //for spwan collition
+                        if(map[newY][newX] ==2||newY<0) { 
+                            return true;
+                        }
                     }
                 }
             }
@@ -191,21 +208,26 @@ class Tetris{
             for(int i=0; i<int(tetromino.shape.size()); i++){
                 for(int j=0; j<int(tetromino.shape[0].size()); j++){
                     if(tetromino.shape[i][j]){ 
-                        map[y+i][x+j] = 2; // Mark the fallen tetromino as part of the grid
+                        map[y+i][x+j] = 10 + tetromino.color; //Mark the fallen tetromino as part of the grid adding 10 for storing color
                     }
                 }
             }
         }
         int createNewTetromino(){ //returns 0 if no spawn collision(gameover)
 
-           //tetromino = tetrominoes[rand() % tetrominoes.size()];
+            tetromino = tetrominoes[rand() % tetrominoes.size()]; //comment out to turn off randominzation
             x = WIDTH / 2 - (int(tetromino.shape[0].size()) / 2);
             y = 1;
-            // cout<< "X; "<<HEIGHT<<endl;
-
 
            
             if (isCollision(0, 0)) {
+                spwancollision=true;
+
+                setColor(4);
+                gotoxy(WIDTH*2 +5 , HEIGHT/2 +3);
+                cout << "Spawn collision detected! Game over.";
+                Sleep(1000);
+                
                 return -1; // Game over
             }
             RenderTetris();
@@ -253,7 +275,7 @@ class Game{
                     mp[i][j]= 9; //border
                     // cout<<mp[i][j];
                     }
-                else if(mp[i][j]==2){
+                else if(mp[i][j]>= 10){
                     continue;
                     // cout<<mp[i][j];e
                 }
@@ -305,14 +327,24 @@ class Game{
     }
 
     void draw(){
+
+        int startX=3 , startY=4;
         
-        gotoxy(2,2);
+        gotoxy(startX, startY);
         for(int i=0; i<HEIGHT; i++){
             for(int j=0; j<WIDTH; j++){
-                gotoxy(j*2 +2,i+2);
-                if(map[i][j]==1 || map[i][j]==2){
+                gotoxy(j*2 +startX, i + startY);
+                if(map[i][j]== 1){
+                    setColor(tetris.tetromino.color);
                     std::cout << char(219); //tetrimine char(219)
                     std::cout << char(219);
+                    setColor(7);
+                }
+                if(map[i][j]>= 10){
+                    setColor(map[i][j] - 10); //get color
+                    std::cout << char(219); //tetrimine char(219)
+                    std::cout << char(219);
+                    setColor(7);
                 }
                 else if(map[i][j]==0){
                     std::cout << "  "; //empty space
@@ -325,16 +357,13 @@ class Game{
         }
     }
 
-    bool checkGameover(){
-        for(int i=0; i<WIDTH; i++){
-            gameover=false;
-            if(map[2][i]==2){
-                gameover = true;
-                break;
+    bool checkGameover() {
+        for(int i=0;i <WIDTH;i++) {
+            if(map[2][i] >=10) { // If any block in row 2 is occupied
+                return true;
             }
         }
-
-        return gameover;
+        return tetris.spwancollision;
     }
 
     void update(){
@@ -343,8 +372,14 @@ class Game{
         tetris.merge();
         layout(map);
         tetris.RenderTetris();
+        if(checkGameover()) {
+            Sleep(2000);
+            gameover=true;
+            
+        }
         draw();
         clearLine();
+        Sleep(250);
         
 
     }
@@ -357,33 +392,36 @@ class Game{
         pauseMenu();
     }
 
-    void clearLine(){
-        int i, j;
-        for(i=1; i< HEIGHT- 1; i++){
-            bool full=true;
-            for(j=1; j< WIDTH -1; j++){
-                if(map[i][j]==0){
-                    full=false; 
+    void clearLine() {
+        for (int i =HEIGHT -2;i >0;i--) { // Start from bottom to top
+            bool full = true;    
+            // Check if row is full
+            for (int j = 1; j <WIDTH-1; j++) {
+                if (map[i][j] == 0) {
+                    full = false;
                     break;
-                }          
+                }
             }
-            if(full){
-                score+=WIDTH-2;
-                for (int k = j; k > 1; k--) {
-                    for (int i = 1; i < WIDTH - 1; i++) {
-                        map[k][i]=map[k-1][i];  // Move row above down
+    
+            // If row is full, clear it and move everything above it down
+            if (full) {
+                for (int k =i; k >1;k--) { // Move each row down
+                    for (int j = 1; j < WIDTH - 1; j++) {
+                        map[k][j] = map[k - 1][j];
                     }
                 }
     
-                // Clear the top row
-                for (int i=1; i<WIDTH -1;i++) {
-                    map[1][i] =0;
+                // Clear the top row after shifting
+                for (int j = 1; j < WIDTH - 1; j++) {
+                    map[1][j] = 0;
                 }
     
+                score += WIDTH - 2; // Increase score for full line
+                i++; // Check the same row index again after shifting
             }
         }
     }
-
+    
     void Reset(){
         gameover=false;
         score=0;
@@ -394,6 +432,7 @@ class Game{
         }
         tetris.createNewTetromino();
         tetris.RenderTetris();
+
     }
  
     int GameoverScreen(){
@@ -425,6 +464,8 @@ class Game{
         }
         return 0;
     }
+
+    int Score() { return score; }
 };                      
 
 
@@ -470,17 +511,18 @@ int main(){
     MoveWindow(s, 300, 100, 480, 620, true);
     hideCursor();
     system("cls");
+
+    gotoxy(WIDTH/2 -5, 1);
+    cout<<"SCORE: "<<game.Score();
+    gotoxy(WIDTH/2 +5, 1);
+    cout<<"HIGHEST: "<<game.Score();
     
     
     while(true){
         while (! game.checkGameover()) {
             game.update();
 
-            // cout<<"game state upadated"<<endl;
             input();
-            // cout<<"input handled"<< i<<endl;
-            // cout<<"game state"<< game.isgameOver()<<endl;    
-            Sleep(500);
         }
         if(game.GameoverScreen() ==1 ) game.Reset(); 
     }
