@@ -38,14 +38,19 @@ int HEIGHT =(data[1] > 2) ? data[1] : 25;
 vector<vector<int>> map(HEIGHT, vector<int>(WIDTH, 0));
 
 void input(Tetris& t1, Game& game){
-    if (_kbhit()) {
-        int ch = _getch();
-        FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
-        if (ch == SPACE) t1.hardDrop();
-        if (ch == ESC) game.Pause();
-        if (ch == 224) {
+    if (_kbhit()){
+        int ch =_getch();
+        FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));// from stackoverflow
+        if(ch ==SPACE) t1.hardDrop();
+        if(ch ==ESC) game.Pause();
+        if(ch ==101 && game.isDev_mode()){
+            system("cls");
+            game.DeveloperMode();
+        }
+
+        if(ch == 224) {
             ch = _getch();
-            switch (ch) {
+            switch (ch){
                 case KEY_UP: t1.Rotate(); break;
                 case KEY_DOWN: t1.moveDown(); break;
                 case KEY_LEFT: t1.moveLeft(); break;
@@ -74,10 +79,20 @@ int main(){
     while (true) {
         while (!game.isgameOver()) {
 
+            if(game.isDev_mode()){
+                gotoxy(WIDTH*2 + 5, 6);
+                setColor(6);
+                cout<< "DEVELOPER MODE: ON";
+                gotoxy(WIDTH*2 + 5, 7);
+                cout<<"PRESS E to swtich to dev-menu";
+                setColor(7);
+
+            }
+
             data= readdata();
-            gotoxy(WIDTH / 2 - 5, 1);
+            gotoxy(WIDTH/2 - 5, 1);
             cout << "SCORE: " << game.Score();
-            gotoxy(WIDTH / 2 + 5, 1);
+            gotoxy(WIDTH/2 + 10, 1);
             cout << "HIGHEST: " << data[2];
             game.update();
 
@@ -87,5 +102,6 @@ int main(){
         }
         if (game.GameoverScreen() == 1) game.Reset();
     }
+    system("cls");
     return 0;
 }

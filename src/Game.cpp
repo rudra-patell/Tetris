@@ -180,11 +180,23 @@ int Game::GameoverScreen(){
     gotoxy(WIDTH + 1, HEIGHT/2 + 3);
     cout << "Press M - Main Screen";
     setColor(7);
+    if(dev){
+        gotoxy(WIDTH + 1, HEIGHT/2 + 4);
+        setColor(6);
+        cout << "Press D - Developer menu";
+        setColor(7);
+    }
     char in = _getch();
     switch (in) {
         case 'e': exit(0); break;
         case 'r': system("cls"); return 1;
         case 'm': Startmenu(); break;
+        case 'd': 
+            system("cls");
+            gameover=false;
+            DeveloperMode();
+            tetris.spwancollision=false;
+            break;
     }
     return 0;
 }
@@ -203,6 +215,10 @@ START:
     cout<<"2. Options";
     gotoxy(14, 11);
     cout<<"3. Exit the Game";
+    setColor(5);
+    gotoxy(14, 13);
+    cout<<"4. Devoloper mode";
+    setColor(7);
 
     char in = _getch();
     switch (in) {
@@ -250,7 +266,7 @@ START:
                         case '1': Difficulty= 1; goto START; break;
                         case '2': Difficulty= 2; goto START; break;
                         case '3': Difficulty= 4; goto START; break;
-                        case '4': system("cls"); break;
+                        case '4': system("cls"); goto START; break;
                         default:
                             gotoxy(14, 15);
                             setColor(4);
@@ -311,12 +327,15 @@ START:
 
         case '3': exit(0); break;
 
+        case '4': dev=true; DeveloperMode(); break;
+
         default: 
-            gotoxy(14, 13);
+            gotoxy(14, 15);
             setColor(4);
             cout<<"Invalid Selection! Please try again.";
             Sleep(1500);
             system("cls");
+            FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
             goto START;
     }
 
@@ -330,6 +349,110 @@ void Game::Restart(){
     exit(0);
 }
 
+void Game::DeveloperMode() {
+    int curX = WIDTH/2;  // Start in the middle of the grid
+    int curY = HEIGHT/2;
+
+    gotoxy(3, 4);
+    layout();
+    draw();
+    
+    while (true) {
+
+        gotoxy(WIDTH*2 +5, HEIGHT/2);
+        setColor(14);
+        cout << "Developer Mode - Edit Grid";
+        gotoxy(WIDTH*2 +5, HEIGHT/2 +1);
+        cout << "WASD - Move | SPACE - Toggle Block | ESC - Exit | R -Reset grid";
+        gotoxy(WIDTH*2 +7, HEIGHT/2 +3);
+        cout << "1. Edit score";
+        gotoxy(WIDTH*2 +7, HEIGHT/2 +5);
+        cout << "2. Change Diificulty";
+
+
+        // Draw the grid with cursor
+        for (int i = 0; i < HEIGHT; i++) {
+            gotoxy(WIDTH/2 -5, 1);
+            cout << "SCORE: " << score;
+            gotoxy(WIDTH/2 +10, 1);
+            cout << "DIFFICULTY: " << Difficulty;
+
+            for(int j = 0; j < WIDTH; j++) {
+                gotoxy(j*2 +3, i+4);
+                if (i ==curY && j ==curX) {
+                    setColor(2);
+                    cout << "[]";
+                } 
+                else if(map[i][j]>= 10) {
+                    setColor(map[i][j] - 10);
+                    cout << char(219)<< char(219);
+                } 
+                else if(map[i][j]== 1) {
+                    setColor(9);
+                    cout << char(219)<< char(219);
+                } 
+                else if(map[i][j] ==9) {
+                    setColor(7);
+                    cout << char(178)<< char(178);
+                } 
+                else {
+                    setColor(7);
+                    cout << "  "; 
+                }
+            }
+        }
+        
+        setColor(7);
+
+        char key=_getch();
+        if(key =='w' && curY >1) curY--;  
+        if(key =='s' && curY <HEIGHT -2) curY++; 
+        if(key =='a' && curX >1) curX--; 
+        if(key =='d' && curX <WIDTH -2) curX++;
+
+        if(key == ' ') {
+            map[curY][curX]= (map[curY][curX] ==0)? 23:0; //23-10 =13 i.e light purple color
+        }
+        if(key =='1'){
+            system("cls");
+            cout<<"Enter New Score: ";
+            cin>>score;            
+            system("cls");
+        }
+        if(key =='2'){
+            system("cls");
+            cout<<"Enter New Difficulty Level (1-5): ";
+            int diff;
+            cin>>diff;
+            Difficulty = (diff > 5)? 5 : (diff < 1)? 1: diff; 
+            
+            system("cls");
+        }
+        if(key == 'r'){
+            for(int i=0; i<HEIGHT; i++){
+                for(int j=0; j< WIDTH; j++){
+                    map[i][j]=(map[i][j]== 9 )? 9: 0;
+                }
+            }
+        }
+
+        if(key == ESC){
+            
+            //updating the difficulty before exiting the dev mode
+            if(score > 5*(WIDTH -2)  && Difficulty <5) Difficulty++;
+            if(score > 15*(WIDTH -2) && Difficulty <5) Difficulty++;
+            if(score > 30*(WIDTH -2) && Difficulty <5) Difficulty++;
+            if(score > 50*(WIDTH -2) && Difficulty <5) Difficulty++; 
+
+            system("cls");
+            break;
+        }
+    }
+}
 
 int Game::Score(){ return score; }
+
+bool Game::isDev_mode(){ return dev; }
+
+void Game::setDev_mode(bool val){ dev =val; }
 

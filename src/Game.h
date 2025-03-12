@@ -11,6 +11,7 @@ private:
     int score;
     int Difficulty=1;
     int highscore;
+    bool dev=false; //Developer mode
 
 public:
     Game(Tetris& tetris, int highestScore);
@@ -27,7 +28,10 @@ public:
     int GameoverScreen();
     void Startmenu();
     void Restart();
+    void DeveloperMode();
     int Score();
+    bool isDev_mode();
+    void setDev_mode(bool val);
 
 };
 
