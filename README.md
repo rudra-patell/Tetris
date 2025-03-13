@@ -52,7 +52,7 @@ g++ main.cpp Game.cpp Tetris.cpp -o tetris.exe
 | Rotate         | ↑  (Up Arrow) or `W` |
 | Soft Drop       | ↓  (Down Arrow) or `S` |
 | Hard Drop       | `Spacebar` |
-| Pause / Resume | `P` |
+| Pause / Resume | `ESC` |
 | Quit Game       | `Q` |
 ---
 
