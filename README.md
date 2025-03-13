@@ -47,10 +47,10 @@ g++ main.cpp Game.cpp Tetris.cpp -o tetris.exe
 
 | Action           | Key |
 |-----------------|----|
-| Move Left       | ←  (Left Arrow) or `A` |
-| Move Right      | →  (Right Arrow) or `D` |
-| Rotate         | ↑  (Up Arrow) or `W` |
-| Soft Drop       | ↓  (Down Arrow) or `S` |
+| Move Left       | ←  (Left Arrow) |
+| Move Right      | →  (Right Arrow) |
+| Rotate         | ↑  (Up Arrow) |
+| Soft Drop       | ↓  (Down Arrow) |
 | Hard Drop       | `Spacebar` |
 | Pause / Resume | `ESC` |
 | Quit Game       | `Q` |
