@@ -5,18 +5,18 @@
 
 // all the functions idea here where taken from sites like stackoverflow, geekforgeeks etc.
 
-void gotoxy(int x, int y){ //inline make the fuctions slightly faster its useful for small functions which are called more frequently
+inline void gotoxy(int x, int y){ //inline make the fuctions slightly faster its useful for small functions which are called more frequently
     COORD c;
     c.X = x;
     c.Y = y;
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
 }
 
-void setColor(int color){
+inline void setColor(int color){
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
 }
 
-void hideCursor(){
+inline void hideCursor(){
     CONSOLE_CURSOR_INFO cursor;
     cursor.dwSize = 100;
     cursor.bVisible = false;
